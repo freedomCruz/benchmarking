@@ -540,6 +540,7 @@ const SectionModelCanvas = () => (
 
 export default function App() {
   const [activeSection, setActiveSection] = React.useState('intro');
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   const sections = {
     intro: { component: <SectionIntro />, label: 'Introducción', icon: Gem },
@@ -556,22 +557,74 @@ export default function App() {
     return sections[activeSection]?.component || <SectionIntro />;
   };
 
+  // Cierra el menú móvil al navegar
+  const handleNav = (key) => {
+    setActiveSection(key);
+    setMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-200 font-sans">
-      <div className="flex">
-        {/* Barra lateral de navegación */}
-        <aside className="w-64 bg-slate-800/50 border-r border-slate-700 p-6 hidden md:flex flex-col space-y-2 sticky top-0 h-screen">
+      {/* Botón hamburguesa solo en mobile */}
+      <button
+        className="md:hidden fixed top-4 left-4 z-30 bg-slate-800/80 border border-slate-700 p-2 rounded-lg shadow-lg focus:outline-none"
+        onClick={() => setMobileMenuOpen(true)}
+        aria-label="Abrir menú"
+      >
+        <svg className="h-6 w-6 text-sky-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+
+      {/* Drawer menú mobile */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-40 flex">
+          {/* Fondo oscuro */}
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Cerrar menú"
+          />
+          {/* Drawer */}
+          <aside className="relative w-64 bg-slate-800/95 border-r border-slate-700 p-6 flex flex-col space-y-2 h-full z-50 animate-slideInLeft">
+            <button
+              className="absolute top-4 right-4 text-slate-400 hover:text-sky-400"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-label="Cerrar menú"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <h2 className="text-lg font-bold text-white mb-4">Menú de Navegación</h2>
             {Object.entries(sections).map(([key, { label, icon }]) => (
-                <NavItem 
-                    key={key} 
-                    icon={icon} 
-                    isActive={activeSection === key}
-                    onClick={() => setActiveSection(key)}
-                >
-                    {label}
-                </NavItem>
+              <NavItem
+                key={key}
+                icon={icon}
+                isActive={activeSection === key}
+                onClick={() => handleNav(key)}
+              >
+                {label}
+              </NavItem>
             ))}
+          </aside>
+        </div>
+      )}
+
+      <div className="flex">
+        {/* Barra lateral de navegación desktop */}
+        <aside className="w-64 bg-slate-800/50 border-r border-slate-700 p-6 hidden md:flex flex-col space-y-2 sticky top-0 h-screen">
+          <h2 className="text-lg font-bold text-white mb-4">Menú de Navegación</h2>
+          {Object.entries(sections).map(([key, { label, icon }]) => (
+            <NavItem
+              key={key}
+              icon={icon}
+              isActive={activeSection === key}
+              onClick={() => setActiveSection(key)}
+            >
+              {label}
+            </NavItem>
+          ))}
         </aside>
 
         {/* Contenido principal */}
@@ -579,6 +632,16 @@ export default function App() {
           {renderSection()}
         </main>
       </div>
+      {/* Animación para el drawer */}
+      <style>{`
+        @keyframes slideInLeft {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
+        .animate-slideInLeft {
+          animation: slideInLeft 0.25s cubic-bezier(0.4,0,0.2,1);
+        }
+      `}</style>
     </div>
   );
 }
